@@ -50,13 +50,17 @@ const char font8x8[0x100][8] = {/*{w:8,h:8,bpp:1,count:256,xform:"scaleX(-1) rot
 
 const char BOX_CHARS[8] = { 218, 191, 192, 217, 196, 196, 179, 179 };
 
-word lfsr = 1;
+const char TOKENSIZE = 6;
 
-char tokens[9];
+char tokens[36];
 
 char displaytext[1];
 
 byte score;
+
+byte randomn;
+
+byte *randomm;
 
 void putchar(byte x, byte y, byte attr) {
   cellram[x][y] = attr;
@@ -100,8 +104,8 @@ void drawcursor(byte offsetX,byte offsetY) {
 void clamp() {
   
   // Clamp to 11.
-  if(cursor.xpos > 11){
-   cursor.xpos = 11; 
+  if(cursor.xpos > 20){
+   cursor.xpos = 20; 
   }
   
   // Clamp to 5.
@@ -115,14 +119,14 @@ void clamp() {
   }
   
   // Clamp to 63.
-  if(cursor.ypos < 49){
-   cursor.ypos = 49; 
+  if(cursor.ypos < 40){
+   cursor.ypos = 40; 
   }
   
   
   // Clamp to 11.
-  if(cursor.xplace > 3){
-   cursor.xplace = 3; 
+  if(cursor.xplace > 6){
+   cursor.xplace = 6; 
   }
   
   // Clamp to 5.
@@ -132,8 +136,8 @@ void clamp() {
 
   
   // Clamp to 55.
-  if(cursor.yplace > 3){
-   cursor.yplace = 3; 
+  if(cursor.yplace > 6){
+   cursor.yplace = 6; 
   }
   
   // Clamp to 63.
@@ -143,19 +147,22 @@ void clamp() {
   
 }
 
-word rand(){
-  byte lsb = lfsr & 1;
-  lfsr >>= 1;
-  if(lsb) lfsr ^= 0xd400;
+static word lfsr = 1;
+word rand() {
+  byte lsb = lfsr & 1;   /* Get LSB (i.e., the output bit). */
+  lfsr >>= 1;                /* Shift register */
+  if (lsb) {                 /* If the output bit is 1, apply toggle mask. */
+    lfsr ^= 0xd400;
+  }
   return lfsr;
 }
 
 void drawTokens() {
   byte i,j;
   
-  for (i=0; i<=2; i++) {
-    for (j=0; j<=2; j++) {
-      putchar(6 + (j * 3), 48 + (i * 3), tokens[i * 3 + j]);
+  for (i=0; i<=TOKENSIZE-1; i++) {
+    for (j=0; j<=TOKENSIZE-1; j++) {
+      putchar(6 + (j * 3), 39 + (i * 3), tokens[i * TOKENSIZE + j]);
     } 
   }
 
@@ -230,8 +237,9 @@ void checkinput() {
   if(FIRE1) {
     // If index is red dot (0x07 value).
     // Note. 1D Array index is accessed by i = y * w + x.  
-    if(tokens[(cursor.yplace - 1) * 3 + (cursor.xplace - 1)] == 0x07) {
-    	tokens[(cursor.yplace - 1) * 3 + (cursor.xplace - 1)] = 0x00;
+    
+    if(tokens[(cursor.yplace - 1) * TOKENSIZE + (cursor.xplace - 1)] == 0x07) {
+    	tokens[(cursor.yplace - 1) * TOKENSIZE + (cursor.xplace - 1)] = 0x00;
       	drawcursor(cursor.xpos,cursor.ypos);
    	drawTokens();
       	score++;
@@ -251,7 +259,7 @@ void init() {
   cursor.xpos = 5;
   cursor.ypos = 55;
   cursor.xplace = 1;
-  cursor.yplace = 3;
+  cursor.yplace = 6;
   cursor.leftkeydown = false;
   cursor.rightkeydown = false;
   score = 0;
@@ -259,35 +267,62 @@ void init() {
 
 void randonTokens()
 {
-  tokens[0] = 0x00;
-  tokens[4] = 0x00;
-  tokens[1] = 0x00;
-  tokens[5] = 0x00;
+  tokens[0] = 0x07;
+  tokens[30] = 0x05;
+  tokens[5] = 0x03;
 }
 
 void main() {
+ 
+  // Object get symbol in the least number of moves. 
+  // Lose 1 point for hitting blank space. 
+  // Lose 2 points for hittings wrong symbol.
+  
+  
+  // Todo
+  // 1. Create a bigger grid. - Done
+  // 2. Refil the grid when they have been cleared. 
+  // 3. Create timer. 
+  // 4. Add score. 
+  // 5. Create randomness.
+  
   
   palette = 0;
+  
+  randomn = 0;
+  
   memcpy(tileram, font8x8, sizeof(font8x8));
   memset(cellram, 32, sizeof(cellram));
   
   putstring(2, 30, "Block Buster");
+  
+  putstring(2, 20, "Press Start");
+  
+  while (1) {
+ 
+    if(START1) {
+      break;
+    }
+  
+  }
+  
+  clrscr();
   
   init();
   
   drawcursor(cursor.xpos,cursor.ypos);
   
   // Reset tokens array to 0x07. 
-  memset(tokens,7,sizeof(tokens));
+  memset(tokens,0,sizeof(tokens));
   
   // Randomize Tokens.
   randonTokens();
 
-  // Draw Tokens To Screen.
   drawTokens();
     
   while (1) {
+   
    checkinput();
-   updatescore();
+   //updatescore();
   }
 }
