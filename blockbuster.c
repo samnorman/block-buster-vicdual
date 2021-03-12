@@ -77,6 +77,7 @@ typedef struct{
   bool rightkeydown;
   bool topkeydown;
   bool bottomkeydown;
+  bool firekey;
 } Cursor;
 
 // Create cursor.
@@ -174,7 +175,40 @@ void displayByte(byte x, byte y, byte number)
   putstring(x, y, &displaytext[0]);
 }
 
+bool checkdotsleft()
+{
+  
+  byte i,j;
+  
+  for (i=0; i<=TOKENSIZE-1; i++) {
+    for (j=0; j<=TOKENSIZE-1; j++) {
+      if(tokens[j * TOKENSIZE + i] == 0x07){
+       return true;
+      }
+    } 
+  }
+  
+  return false;
+}
+
+void updatescore() 
+{
+  putstring(2, 5, "Score:");
+  displayByte(9, 5, score + 0x30);
+}
+
+void randonTokens()
+{
+  tokens[0] = 0x07;
+  tokens[8] = 0x07;
+  tokens[15] = 0x07;
+  tokens[30] = 0x05;
+  tokens[5] = 0x03;
+}
+
 void checkinput() {
+  
+  byte token;
 
   if (RIGHT1 && !cursor.rightkeydown) {
    clrscr();
@@ -231,27 +265,36 @@ void checkinput() {
   if(!DOWN1 && cursor.bottomkeydown) {
     cursor.bottomkeydown = false;
   }
+  
+  if(!FIRE1 && cursor.firekey) {
+    cursor.firekey = false;
+  }
  
   
   // If button one is pressed.
-  if(FIRE1) {
+  if(FIRE1 && !cursor.firekey) {
     // If index is red dot (0x07 value).
     // Note. 1D Array index is accessed by i = y * w + x.  
+    token = tokens[(cursor.yplace - 1) * TOKENSIZE + (cursor.xplace - 1)];
     
-    if(tokens[(cursor.yplace - 1) * TOKENSIZE + (cursor.xplace - 1)] == 0x07) {
+    if(token == 0x07) {
     	tokens[(cursor.yplace - 1) * TOKENSIZE + (cursor.xplace - 1)] = 0x00;
       	drawcursor(cursor.xpos,cursor.ypos);
    	drawTokens();
       	score++;
+    } else{
+      	score--;
     }
+    
+    cursor.firekey = true;
+    
+    // Check dots left if no dots are left then draw tokens.
+    if(!checkdotsleft()) {
+      randonTokens();
+      drawTokens();
+    } 
   }
 
-}
-
-void updatescore() 
-{
-  putstring(2, 10, "Score:");
-  displayByte(9, 10, score + 0x30);
 }
 
 
@@ -262,29 +305,23 @@ void init() {
   cursor.yplace = 6;
   cursor.leftkeydown = false;
   cursor.rightkeydown = false;
+  cursor.firekey = false;
   score = 0;
 }
 
-void randonTokens()
-{
-  tokens[0] = 0x07;
-  tokens[30] = 0x05;
-  tokens[5] = 0x03;
-}
 
 void main() {
  
   // Object get symbol in the least number of moves. 
-  // Lose 1 point for hitting blank space. 
-  // Lose 2 points for hittings wrong symbol.
+  // Lose 1 point for not hitting a dot. 
   
   
   // Todo
   // 1. Create a bigger grid. - Done
-  // 2. Refil the grid when they have been cleared. 
-  // 3. Create timer. 
+  // 2. Refil the grid when they have been cleared - Done
+  // 3. Add Levels - Add different array states for each level. 
   // 4. Add score. 
-  // 5. Create randomness.
+  // 5. Add Gameover and Finish.
   
   
   palette = 0;
@@ -323,6 +360,6 @@ void main() {
   while (1) {
    
    checkinput();
-   //updatescore();
+   updatescore();
   }
 }
