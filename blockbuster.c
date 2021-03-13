@@ -60,7 +60,9 @@ byte score;
 
 byte randomn;
 
-byte *randomm;
+byte levelcounter;
+
+byte completed;
 
 void putchar(byte x, byte y, byte attr) {
   cellram[x][y] = attr;
@@ -199,11 +201,39 @@ void updatescore()
 
 void randonTokens()
 {
-  tokens[0] = 0x07;
-  tokens[8] = 0x07;
-  tokens[15] = 0x07;
-  tokens[30] = 0x05;
-  tokens[5] = 0x03;
+  
+  
+  switch(levelcounter){
+      
+    case 0:
+      tokens[0] = 0x07;
+      tokens[8] = 0x07;
+      tokens[15] = 0x07;
+      tokens[30] = 0x05;
+      tokens[5] = 0x03;
+    break;
+    case 1:
+      tokens[0] = 0x07;
+      tokens[8] = 0x07;
+      tokens[15] = 0x07;
+      tokens[32] = 0x05;
+      tokens[4] = 0x03;
+    break;
+    case 2:
+      tokens[8] = 0x07;
+      tokens[24] = 0x07;
+      tokens[35] = 0x07;
+      tokens[30] = 0x05;
+      tokens[5] = 0x03;
+    break;
+    case 3:
+      completed = true;
+    break;
+    
+  }
+  
+  
+  levelcounter++;
 }
 
 void checkinput() {
@@ -307,6 +337,19 @@ void init() {
   cursor.rightkeydown = false;
   cursor.firekey = false;
   score = 0;
+  levelcounter = 0;
+  completed = false;
+  
+  drawcursor(cursor.xpos,cursor.ypos);
+  
+  // Reset tokens array to 0x07. 
+  memset(tokens,0,sizeof(tokens));
+  
+  // Randomize Tokens.
+  randonTokens();
+
+  drawTokens();
+  
 }
 
 
@@ -319,9 +362,10 @@ void main() {
   // Todo
   // 1. Create a bigger grid. - Done
   // 2. Refil the grid when they have been cleared - Done
-  // 3. Add Levels - Add different array states for each level. 
+  // 3. Add Levels - Add different array states for each level. - Done 
   // 4. Add score. 
-  // 5. Add Gameover and Finish.
+  // 5. Add Gameover.
+  // 6. Clean Code, add comments and readme.
   
   
   palette = 0;
@@ -347,19 +391,28 @@ void main() {
   
   init();
   
-  drawcursor(cursor.xpos,cursor.ypos);
-  
-  // Reset tokens array to 0x07. 
-  memset(tokens,0,sizeof(tokens));
-  
-  // Randomize Tokens.
-  randonTokens();
-
-  drawTokens();
     
   while (1) {
    
    checkinput();
    updatescore();
+    
+   if(completed) {
+     clrscr();
+      break;
+    }
+    
   }
+  
+  putstring(2, 30, "Completed");
+  putstring(2, 30, "Press Start to Play Again");
+  
+  while (1) {
+ 
+    if(START1) {
+      break;
+    }
+  
+  }
+  
 }
