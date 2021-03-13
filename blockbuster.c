@@ -174,7 +174,7 @@ void drawTokens() {
 void displayByte(byte x, byte y, byte number)
 {
   displaytext[0] = (int)number;
-  putstring(x, y, &displaytext[0]);
+  putchar(x, y, number);
 }
 
 bool checkdotsleft()
@@ -336,7 +336,7 @@ void init() {
   cursor.leftkeydown = false;
   cursor.rightkeydown = false;
   cursor.firekey = false;
-  score = 0;
+  score = 1;
   levelcounter = 0;
   completed = false;
   
@@ -354,20 +354,8 @@ void init() {
 
 
 void main() {
- 
-  // Object get symbol in the least number of moves. 
-  // Lose 1 point for not hitting a dot. 
-  
-  
-  // Todo
-  // 1. Create a bigger grid. - Done
-  // 2. Refil the grid when they have been cleared - Done
-  // 3. Add Levels - Add different array states for each level. - Done 
-  // 4. Add score. 
-  // 5. Add Gameover.
-  // 6. Clean Code, add comments and readme.
-  
-  
+
+
   palette = 0;
   
   randomn = 0;
@@ -377,7 +365,11 @@ void main() {
   
   putstring(2, 30, "Block Buster");
   
-  putstring(2, 20, "Press Start");
+  putstring(2, 25, "Joystick to move cursor");
+  
+  putstring(2, 23, "Button One to get dots");
+  
+  putstring(2, 18, "Press Start");
   
   while (1) {
  
@@ -402,9 +394,18 @@ void main() {
       break;
     }
     
+    if(score == 0){
+      clrscr();
+      break;
+    }
+    
   }
   
-  putstring(2, 30, "Completed");
+  if(score == 0) {
+    putstring(2, 31, "Game Over");
+  } else {
+    putstring(2, 31, "Completed"); 
+  }
   putstring(2, 30, "Press Start to Play Again");
   
   while (1) {
